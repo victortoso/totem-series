@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="TotemSeriesView" parent="GtkBin">
+    <property name="visible">True</property>
+    <child>
+      <object class="EmeusConstraintLayout" id="layout">
+        <property name="visible">True</property>
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
+        <child>
+          <object class="GtkImage" id="poster">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="hexpand">False</property>
+            <property name="vexpand">False</property>
+            <property name="stock">gtk-missing-image</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="description_box">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="hexpand">False</property>
+            <property name="vexpand">False</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkLabel" id="description_label">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="hexpand">False</property>
+                <property name="vexpand">False</property>
+                <property name="valign">start</property>
+                <property name="halign">start</property>
+                <property name="xalign">0</property>
+                <property name="wrap">True</property>
+                <property name="ellipsize">end</property>
+                <property name="lines">12</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="cast_header">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="hexpand">False</property>
+                <property name="vexpand">False</property>
+                <property name="halign">start</property>
+                <property name="xalign">0</property>
+                <property name="margin-top">32</property>
+                <property name="margin-bottom">8</property>
+                <property name="label" translatable="yes">Cast</property>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="cast_label">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="hexpand">False</property>
+                <property name="vexpand">False</property>
+                <property name="halign">start</property>
+                <property name="xalign">0</property>
+                <property name="wrap">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="director_header">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="hexpand">False</property>
+                <property name="vexpand">False</property>
+                <property name="halign">start</property>
+                <property name="xalign">0</property>
+                <property name="margin-top">32</property>
+                <property name="margin-bottom">8</property>
+                <property name="label" translatable="yes">Director</property>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="director_label">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="hexpand">False</property>
+                <property name="vexpand">False</property>
+                <property name="halign">start</property>
+                <property name="xalign">0</property>
+                <property name="wrap">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="writers_header">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="hexpand">False</property>
+                <property name="vexpand">False</property>
+                <property name="halign">start</property>
+                <property name="xalign">0</property>
+                <property name="margin-top">32</property>
+                <property name="margin-bottom">8</property>
+                <property name="label" translatable="yes">Writers</property>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="writers_label">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="hexpand">False</property>
+                <property name="vexpand">False</property>
+                <property name="halign">start</property>
+                <property name="xalign">0</property>
+                <property name="wrap">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="previous_season">
+            <property name="visible">True</property>
+            <property name="valign">center</property>
+            <property name="use-underline">True</property>
+<!--            <signal name="clicked" handler="on_previous_season_clicked"/>-->
+            <style>
+              <class name="image-button"/>
+            </style>
+            <child internal-child="accessible">
+              <object class="AtkObject" id="a11y_previous_season">
+                <property name="accessible-name" translatable="yes">Previous Season</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="previous_season_image">
+                <property name="visible">True</property>
+                <property name="icon-name">go-previous-symbolic</property>
+                <property name="icon-size">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="next_season">
+            <property name="visible">True</property>
+            <property name="valign">center</property>
+            <property name="use-underline">True</property>
+<!--            <signal name="clicked" handler="on_next_season_clicked"/>-->
+            <style>
+              <class name="image-button"/>
+            </style>
+            <child internal-child="accessible">
+              <object class="AtkObject" id="a11y_next_season">
+                <property name="accessible-name" translatable="yes">Next Season</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="next_season_image">
+                <property name="visible">True</property>
+                <property name="icon-name">go-next-symbolic</property>
+                <property name="icon-size">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="season_title">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label">Season 1 (20XX)</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStack" id="episodes">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+          </object>
+        </child>
+        <constraints>
+          <!-- Left pane X-positions -->
+          <constraint target-object="poster"
+                      target-attr="right"
+                      relation="eq"
+                      source-object="super"
+                      source-attr="center-x"
+                      constant="-32"
+                      strength="required"/>
+          <constraint target-object="description_box"
+                      target-attr="center-x"
+                      relation="eq"
+                      source-object="poster"
+                      source-attr="center-x"
+                      strength="required"/>
+          <!-- Left pane Y-positions -->
+          <constraint target-object="poster"
+                      target-attr="top"
+                      relation="eq"
+                      source-object="super"
+                      source-attr="top"
+                      constant="48"
+                      strength="required"/>
+<!--          <constraint target-object="description_box"-->
+<!--                      target-attr="top"-->
+<!--                      relation="ge"-->
+<!--                      source-object="super"-->
+<!--                      source-attr="top"-->
+<!--                      constant="48"-->
+<!--                      strength="required"/>-->
+          <constraint target-object="description_box"
+                      target-attr="top"
+                      relation="ge"
+                      source-object="poster"
+                      source-attr="bottom"
+                      constant="32"
+                      strength="required"/>
+          <!-- Right pane X-positions -->
+          <constraint target-object="episodes"
+                      target-attr="start"
+                      relation="eq"
+                      source-object="super"
+                      source-attr="center-x"
+                      strength="required"/>
+          <constraint target-object="episodes"
+                      target-attr="end"
+                      relation="eq"
+                      source-object="super"
+                      source-attr="center-x"
+                      constant="450"
+                      strength="required"/>
+          <constraint target-object="previous_season"
+                      target-attr="start"
+                      relation="eq"
+                      source-object="episodes"
+                      source-attr="start"
+                      strength="required"/>
+          <constraint target-object="next_season"
+                      target-attr="end"
+                      relation="eq"
+                      source-object="episodes"
+                      source-attr="end"
+                      strength="required"/>
+          <constraint target-object="season_title"
+                      target-attr="center-x"
+                      relation="eq"
+                      source-object="episodes"
+                      source-attr="center-x"
+                      strength="required"/>
+          <!-- Right pane Y-positions -->
+          <constraint target-object="previous_season"
+                      target-attr="top"
+                      relation="eq"
+                      source-object="super"
+                      source-attr="top"
+                      constant="48"
+                      strength="required"/>
+          <constraint target-object="next_season"
+                      target-attr="top"
+                      relation="eq"
+                      source-object="previous_season"
+                      source-attr="top"
+                      strength="required"/>
+          <constraint target-object="next_season"
+                      target-attr="bottom"
+                      relation="eq"
+                      source-object="previous_season"
+                      source-attr="bottom"
+                      strength="required"/>
+          <constraint target-object="episodes"
+                      target-attr="top"
+                      relation="eq"
+                      source-object="previous_season"
+                      source-attr="bottom"
+                      constant="16"
+                      strength="required"/>
+          <constraint target-object="episodes"
+                      target-attr="top"
+                      relation="eq"
+                      source-object="next_season"
+                      source-attr="bottom"
+                      constant="16"
+                      strength="required"/>
+          <constraint target-object="season_title"
+                      target-attr="center-y"
+                      relation="eq"
+                      source-object="previous_season"
+                      source-attr="center-y"
+                      strength="required"/>
+          <!-- Widths -->
+          <constraint target-object="super"
+                      target-attr="width"
+                      relation="le"
+                      constant="950"
+                      strength="required"/>
+          <constraint target-object="poster"
+                      target-attr="width"
+                      relation="eq"
+                      constant="400"
+                      strength="required"/>
+          <constraint target-object="description_box"
+                      target-attr="width"
+                      relation="eq"
+                      source-object="poster"
+                      source-attr="width"
+                      strength="required"/>
+          <!-- Heights -->
+          <constraint target-object="super"
+                      target-attr="height"
+                      relation="le"
+                      constant="600"
+                      strength="required"/>
+        </constraints>
+      </object>
+    </child>
+  </template>
+</interface>

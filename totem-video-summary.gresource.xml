@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/org/totem/grilo">
+    <file compressed="true">totem-episode-view.ui</file>
+    <file compressed="true">totem-series-summary.ui</file>
+    <file compressed="true">totem-series-view.ui</file>
+  </gresource>
+</gresources>
