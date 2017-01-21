@@ -121,34 +121,28 @@ totem_series_view_update (TotemSeriesView *self)
 
   videos = self->priv->videos;
 
-  video = NULL;
-  if (videos != NULL && videos->len > 0)
-    video = g_ptr_array_index (videos, 0);
+  g_return_if_fail (videos != NULL);
+  g_return_if_fail (videos->len > 0);
 
-  description = NULL;
-  if (video != NULL)
-    description = grl_media_get_description (video);
+  video = g_ptr_array_index (videos, 0);
+  g_return_if_fail (video != NULL);
+
+  description = grl_media_get_description (video);
   if (description == NULL)
     description = "";
   totem_series_view_set_description (self, description);
 
-  cast = NULL;
-  if (video != NULL)
-    cast = get_data_from_media (GRL_DATA (video), GRL_METADATA_KEY_PERFORMER);
+  cast = get_data_from_media (GRL_DATA (video), GRL_METADATA_KEY_PERFORMER);
   if (cast == NULL)
     cast = "";
   totem_series_view_set_cast (self, cast);
 
-  director = NULL;
-  if (video != NULL)
-    director = get_data_from_media (GRL_DATA (video), GRL_METADATA_KEY_DIRECTOR);
+  director = get_data_from_media (GRL_DATA (video), GRL_METADATA_KEY_DIRECTOR);
   if (director == NULL)
     director = "";
   totem_series_view_set_director (self, director);
 
-  writers = NULL;
-  if (video != NULL)
-    writers = get_data_from_media (GRL_DATA (video), GRL_METADATA_KEY_AUTHOR);
+  writers = get_data_from_media (GRL_DATA (video), GRL_METADATA_KEY_AUTHOR);
   if (writers == NULL)
     writers = "";
   totem_series_view_set_writers (self, writers);
