@@ -106,22 +106,6 @@ operation_spec_free (OperationSpec *os)
 }
 
 static void
-totem_series_summary_set_basic_content (TotemSeriesSummary *self,
-                                        GrlMedia           *video)
-{
-/*  const gchar *title;*/
-/*  gboolean is_tv_show = (grl_media_get_show (video) != NULL);*/
-
-/*  if (is_tv_show)*/
-/*    title = grl_media_get_episode_title (video);*/
-/*  else*/
-/*    title = grl_media_get_title (video);*/
-
-/*  if (title)*/
-/*    gtk_label_set_text (self->priv->title, title);*/
-}
-
-static void
 video_summary_set_subtitles (TotemSeriesSummary *self,
                              VideoSummaryData   *video_summary,
                              GrlData            *data)
@@ -188,7 +172,9 @@ add_video_to_summary_and_free (OperationSpec *os)
   /* Cache VideoSummaryData as we might have other async calls */
   os->video_summary = data;
 
-  totem_series_view_add_video (self->priv->view, os->video);
+  /* FIXME: we should update it here
+   * totem_series_view_add_video (self->priv->view, os->video);
+   */
   operation_spec_free (os);
 }
 
@@ -306,9 +292,16 @@ resolve_by_the_tvdb (OperationSpec *os)
 static void
 resolve_video_summary_media (OperationSpec *os)
 {
+  TotemSeriesSummary *self;
+
+  g_assert_nonnull (os);
+
+  self = os->totem_series_summary;
+
   if (grl_media_get_show (os->video) != NULL) {
     os->is_tv_show = TRUE;
-    totem_series_summary_set_basic_content (os->totem_series_summary, os->video);
+    /* And set basic information */
+    totem_series_view_add_video (self->priv->view, os->video);
     resolve_by_the_tvdb (os);
 
     return;
