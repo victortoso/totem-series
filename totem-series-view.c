@@ -206,7 +206,7 @@ totem_series_view_add_video (TotemSeriesView *self,
   gtk_widget_show (GTK_WIDGET (episode_view));
   gtk_container_add (GTK_CONTAINER (season_view), GTK_WIDGET (episode_view));
 
-  g_ptr_array_add (self->priv->videos, video);
+  g_ptr_array_add (self->priv->videos, g_object_ref (video));
 
   totem_series_view_update (self);
 
