@@ -31,6 +31,7 @@ typedef struct _TotemSeriesViewPrivate
 {
   GPtrArray *videos;
   GHashTable *seasons;
+  gchar *show_name;
 
   GtkLabel *description_label;
   GtkLabel *cast_label;
@@ -176,8 +177,21 @@ totem_series_view_add_video (TotemSeriesView *self,
   gchar *season_number_string;
   GtkWidget *season_view;
   TotemEpisodeView *episode_view;
+  const gchar *show;
 
-  // TODO If the series isn't the same, don't add the new video
+  g_return_val_if_fail (video != NULL, FALSE);
+
+  show = grl_media_get_show (video);
+  g_return_val_if_fail (show != NULL, FALSE);
+
+  if (self->priv->show_name == NULL)
+    self->priv->show_name = g_strdup (show);
+
+  if (g_strcmp0(self->priv->show_name, show) != 0) {
+    g_warning ("Video belong to different show: '%s' instead of '%s'",
+               show, self->priv->show_name);
+    return FALSE;
+  }
 
   season_number = (gintptr) grl_media_get_season (video);
   if (g_hash_table_contains (self->priv->seasons, (gpointer) season_number))
@@ -220,6 +234,8 @@ totem_series_view_finalize (GObject *object)
     g_hash_table_unref (priv->seasons);
     priv->seasons = NULL;
   }
+
+  g_free (priv->show_name);
 
   G_OBJECT_CLASS (totem_series_view_parent_class)->finalize (object);
 }
