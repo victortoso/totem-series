@@ -29,7 +29,7 @@
 
 typedef struct _TotemSeriesViewPrivate
 {
-  GPtrArray *videos;
+  GHashTable *episodes;
   GHashTable *seasons;
   gchar *show_name;
 
@@ -189,6 +189,10 @@ totem_series_view_add_video (TotemSeriesView *self,
     return FALSE;
   }
 
+  if (g_hash_table_contains (self->priv->episodes, video)) {
+    return FALSE;
+  }
+
   season_number = (gintptr) grl_media_get_season (video);
   if (g_hash_table_contains (self->priv->seasons, (gpointer) season_number))
     season_view = g_hash_table_lookup (self->priv->seasons, (gpointer) season_number);
@@ -203,14 +207,12 @@ totem_series_view_add_video (TotemSeriesView *self,
     g_free (season_number_string);
   }
 
-  // TODO if the episode is already contained, do not add it (?)
-
   episode_view = totem_episode_view_new ();
   totem_episode_view_set_media (episode_view, video);
   gtk_widget_show (GTK_WIDGET (episode_view));
   gtk_container_add (GTK_CONTAINER (season_view), GTK_WIDGET (episode_view));
 
-  g_ptr_array_add (self->priv->videos, g_object_ref (video));
+  g_hash_table_add (self->priv->episodes, g_object_ref (video));
 
   totem_series_view_update (self, video);
 
@@ -231,6 +233,7 @@ totem_series_view_finalize (GObject *object)
     priv->seasons = NULL;
   }
 
+  g_clear_pointer (&priv->episodes, g_hash_table_unref);
   g_free (priv->show_name);
 
   G_OBJECT_CLASS (totem_series_view_parent_class)->finalize (object);
@@ -242,7 +245,8 @@ totem_series_view_init (TotemSeriesView *self)
   gtk_widget_init_template (GTK_WIDGET (self));
   self->priv = totem_series_view_get_instance_private (self);
 
-  self->priv->videos = g_ptr_array_new_with_free_func (g_object_unref);
+  self->priv->episodes = g_hash_table_new_full (g_direct_hash, g_direct_equal,
+                                                g_object_unref, NULL);
   self->priv->seasons = g_hash_table_new (g_direct_hash, g_direct_equal);
 }
 
