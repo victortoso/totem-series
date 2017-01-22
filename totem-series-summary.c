@@ -172,9 +172,8 @@ add_video_to_summary_and_free (OperationSpec *os)
   /* Cache VideoSummaryData as we might have other async calls */
   os->video_summary = data;
 
-  /* FIXME: we should update it here
-   * totem_series_view_add_video (self->priv->view, os->video);
-   */
+  /* FIXME: For now, we add the video in the end. It should be an update here */
+  totem_series_view_add_video (self->priv->view, os->video);
   operation_spec_free (os);
 }
 
@@ -301,7 +300,11 @@ resolve_video_summary_media (OperationSpec *os)
   if (grl_media_get_show (os->video) != NULL) {
     os->is_tv_show = TRUE;
     /* And set basic information */
-    totem_series_view_add_video (self->priv->view, os->video);
+    /* FIXME: We should add the video here (or earlier) so we can update the UI
+     * (if necessary) with basic inforation of tv-show
+     *
+     * totem_series_view_add_video (self->priv->view, os->video);
+     */
     resolve_by_the_tvdb (os);
 
     return;
