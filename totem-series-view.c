@@ -30,7 +30,7 @@
 typedef struct _TotemSeriesViewPrivate
 {
   GHashTable *episodes;
-  GHashTable *seasons;
+  GPtrArray *seasons;
   gchar *show_name;
 
   GtkLabel *description_label;
@@ -40,6 +40,13 @@ typedef struct _TotemSeriesViewPrivate
   GtkLabel *season_title;
   GtkStack *episodes_stack;
 } TotemSeriesViewPrivate;
+
+typedef struct _TotemSeasonSpec
+{
+  gint season_number;
+  GtkWidget *season_view;
+  GPtrArray *videos; /* weak reference */
+} TotemSeasonSpec;
 
 G_DEFINE_TYPE_WITH_PRIVATE (TotemSeriesView, totem_series_view, GTK_TYPE_BIN);
 
@@ -151,6 +158,69 @@ totem_series_view_update (TotemSeriesView *self,
   g_free (season_title_string);
 }
 
+static void
+totem_series_view_season_spec_add_video (TotemSeasonSpec *ss,
+                                         GrlMedia *video)
+{
+  g_return_if_fail (ss != NULL);
+  g_return_if_fail (video != NULL);
+  g_ptr_array_add (ss->videos, (gpointer) video);
+}
+
+static void
+totem_series_view_free_season_spec (gpointer data)
+{
+  TotemSeasonSpec *ss;
+  if (data == NULL)
+    return;
+
+  ss = data;
+  g_clear_pointer (&ss->videos, g_ptr_array_unref);
+  g_free (ss);
+}
+
+static TotemSeasonSpec *
+totem_series_view_get_season_spec (TotemSeriesView *self,
+                                   gint             season_number)
+{
+  g_return_val_if_fail (season_number >= 0, NULL);
+
+  if (self->priv->seasons->len < season_number) {
+    g_ptr_array_set_size (self->priv->seasons, season_number);
+    return NULL;
+  }
+
+  return g_ptr_array_index (self->priv->seasons, season_number);
+}
+
+static TotemSeasonSpec *
+totem_series_view_new_season_spec (TotemSeriesView *self,
+                                   gint             season_number)
+{
+  TotemSeasonSpec *ss;
+
+  g_return_val_if_fail (season_number >= 0, NULL);
+
+  ss = totem_series_view_get_season_spec (self, season_number);
+  if (ss == NULL) {
+    gchar *name;
+
+    ss = g_new (TotemSeasonSpec, 1);
+    ss->season_number = season_number;
+    ss->videos = g_ptr_array_new ();
+    ss->season_view = gtk_list_box_new ();
+    gtk_widget_show (ss->season_view);
+
+    g_ptr_array_insert (self->priv->seasons, season_number, ss);
+
+    name = g_strdup_printf ("%d", season_number);
+    gtk_stack_add_named (self->priv->episodes_stack, ss->season_view, name);
+    g_free (name);
+  }
+
+  return ss;
+}
+
 /* -------------------------------------------------------------------------- *
  * External
  * -------------------------------------------------------------------------- */
@@ -169,9 +239,7 @@ gboolean
 totem_series_view_add_video (TotemSeriesView *self,
                              GrlMedia        *video)
 {
-  gintptr season_number;
-  gchar *season_number_string;
-  GtkWidget *season_view;
+  TotemSeasonSpec *ss;
   TotemEpisodeView *episode_view;
   const gchar *show;
 
@@ -193,23 +261,13 @@ totem_series_view_add_video (TotemSeriesView *self,
     return FALSE;
   }
 
-  season_number = (gintptr) grl_media_get_season (video);
-  if (g_hash_table_contains (self->priv->seasons, (gpointer) season_number))
-    season_view = g_hash_table_lookup (self->priv->seasons, (gpointer) season_number);
-  else {
-    season_view = gtk_list_box_new ();
-    gtk_widget_show (season_view);
-    g_hash_table_insert (self->priv->seasons, (gpointer) season_number, season_view);
-
-
-    season_number_string = g_strdup_printf ("%ld", season_number);
-    gtk_stack_add_named (self->priv->episodes_stack, season_view, season_number_string);
-    g_free (season_number_string);
-  }
+  ss = totem_series_view_new_season_spec (self, grl_media_get_season (video));
+  g_return_val_if_fail (ss != NULL, FALSE);
+  totem_series_view_season_spec_add_video (ss, video);
 
   episode_view = totem_episode_view_new (video);
   gtk_widget_show (GTK_WIDGET (episode_view));
-  gtk_container_add (GTK_CONTAINER (season_view), GTK_WIDGET (episode_view));
+  gtk_container_add (GTK_CONTAINER (ss->season_view), GTK_WIDGET (episode_view));
 
   g_hash_table_add (self->priv->episodes, g_object_ref (video));
 
@@ -227,11 +285,7 @@ totem_series_view_finalize (GObject *object)
 {
   TotemSeriesViewPrivate *priv = TOTEM_SERIES_VIEW (object)->priv;
 
-  if (priv->seasons != NULL) {
-    g_hash_table_unref (priv->seasons);
-    priv->seasons = NULL;
-  }
-
+  g_clear_pointer (&priv->seasons, g_ptr_array_unref);
   g_clear_pointer (&priv->episodes, g_hash_table_unref);
   g_free (priv->show_name);
 
@@ -246,7 +300,7 @@ totem_series_view_init (TotemSeriesView *self)
 
   self->priv->episodes = g_hash_table_new_full (g_direct_hash, g_direct_equal,
                                                 g_object_unref, NULL);
-  self->priv->seasons = g_hash_table_new (g_direct_hash, g_direct_equal);
+  self->priv->seasons = g_ptr_array_new_with_free_func (totem_series_view_free_season_spec);
 }
 
 static void
