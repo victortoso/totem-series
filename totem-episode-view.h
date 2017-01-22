@@ -55,9 +55,7 @@ struct _TotemEpisodeViewClass
 GType               totem_episode_view_get_type           (void) G_GNUC_CONST;
 
 /* External */
-TotemEpisodeView *totem_episode_view_new (void);
-void totem_episode_view_set_media (TotemEpisodeView *self,
-                                   GrlMedia         *media);
+TotemEpisodeView *totem_episode_view_new (GrlMedia *media);
 
 G_END_DECLS
 

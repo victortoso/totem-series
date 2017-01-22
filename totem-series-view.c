@@ -207,8 +207,7 @@ totem_series_view_add_video (TotemSeriesView *self,
     g_free (season_number_string);
   }
 
-  episode_view = totem_episode_view_new ();
-  totem_episode_view_set_media (episode_view, video);
+  episode_view = totem_episode_view_new (video);
   gtk_widget_show (GTK_WIDGET (episode_view));
   gtk_container_add (GTK_CONTAINER (season_view), GTK_WIDGET (episode_view));
 

@@ -77,30 +77,18 @@ totem_episode_view_update (TotemEpisodeView *self)
  * -------------------------------------------------------------------------- */
 
 TotemEpisodeView *
-totem_episode_view_new (void)
+totem_episode_view_new (GrlMedia *media)
 {
   TotemEpisodeView *self;
 
+  g_return_val_if_fail (media != NULL, NULL);
+
   self = g_object_new (TOTEM_TYPE_EPISODE_VIEW, NULL);
-
-  return self;
-}
-
-void
-totem_episode_view_set_media (TotemEpisodeView *self,
-                              GrlMedia         *media)
-{
-  if (self->priv->media !=NULL) {
-    g_object_unref (self->priv->media);
-    self->priv->media = NULL;
-  }
-
-  if (media != NULL) {
-    g_object_ref (media);
-    self->priv->media = media;
-  }
+  self->priv->media = g_object_ref (media);
 
   totem_episode_view_update (self);
+
+  return self;
 }
 
 /* -------------------------------------------------------------------------- *
