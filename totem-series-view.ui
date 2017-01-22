@@ -186,7 +186,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkStack" id="episodes">
+          <object class="GtkStack" id="episodes_stack">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
           </object>
@@ -229,13 +229,13 @@
                       constant="32"
                       strength="required"/>
           <!-- Right pane X-positions -->
-          <constraint target-object="episodes"
+          <constraint target-object="episodes_stack"
                       target-attr="start"
                       relation="eq"
                       source-object="super"
                       source-attr="center-x"
                       strength="required"/>
-          <constraint target-object="episodes"
+          <constraint target-object="episodes_stack"
                       target-attr="end"
                       relation="eq"
                       source-object="super"
@@ -245,19 +245,19 @@
           <constraint target-object="previous_season"
                       target-attr="start"
                       relation="eq"
-                      source-object="episodes"
+                      source-object="episodes_stack"
                       source-attr="start"
                       strength="required"/>
           <constraint target-object="next_season"
                       target-attr="end"
                       relation="eq"
-                      source-object="episodes"
+                      source-object="episodes_stack"
                       source-attr="end"
                       strength="required"/>
           <constraint target-object="season_title"
                       target-attr="center-x"
                       relation="eq"
-                      source-object="episodes"
+                      source-object="episodes_stack"
                       source-attr="center-x"
                       strength="required"/>
           <!-- Right pane Y-positions -->
@@ -280,14 +280,14 @@
                       source-object="previous_season"
                       source-attr="bottom"
                       strength="required"/>
-          <constraint target-object="episodes"
+          <constraint target-object="episodes_stack"
                       target-attr="top"
                       relation="eq"
                       source-object="previous_season"
                       source-attr="bottom"
                       constant="16"
                       strength="required"/>
-          <constraint target-object="episodes"
+          <constraint target-object="episodes_stack"
                       target-attr="top"
                       relation="eq"
                       source-object="next_season"

@@ -38,7 +38,7 @@ typedef struct _TotemSeriesViewPrivate
   GtkLabel *director_label;
   GtkLabel *writers_label;
   GtkLabel *season_title;
-  GtkStack *episodes;
+  GtkStack *episodes_stack;
 } TotemSeriesViewPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (TotemSeriesView, totem_series_view, GTK_TYPE_BIN);
@@ -199,7 +199,7 @@ totem_series_view_add_video (TotemSeriesView *self,
 
 
     season_number_string = g_strdup_printf ("%ld", season_number);
-    gtk_stack_add_named (self->priv->episodes, season_view, season_number_string);
+    gtk_stack_add_named (self->priv->episodes_stack, season_view, season_number_string);
     g_free (season_number_string);
   }
 
@@ -260,5 +260,5 @@ totem_series_view_class_init (TotemSeriesViewClass *class)
   gtk_widget_class_bind_template_child_private (widget_class, TotemSeriesView, director_label);
   gtk_widget_class_bind_template_child_private (widget_class, TotemSeriesView, writers_label);
   gtk_widget_class_bind_template_child_private (widget_class, TotemSeriesView, season_title);
-  gtk_widget_class_bind_template_child_private (widget_class, TotemSeriesView, episodes);
+  gtk_widget_class_bind_template_child_private (widget_class, TotemSeriesView, episodes_stack);
 }
