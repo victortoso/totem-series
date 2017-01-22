@@ -32,6 +32,7 @@ typedef struct _TotemSeriesViewPrivate
   GHashTable *episodes;
   GPtrArray *seasons;
   gchar *show_name;
+  gint current_season;
 
   GtkLabel *description_label;
   GtkLabel *cast_label;
@@ -221,6 +222,59 @@ totem_series_view_new_season_spec (TotemSeriesView *self,
   return ss;
 }
 
+static void
+on_previous_season_clicked (GtkButton *button,
+                            gpointer   user_data)
+{
+  gint i;
+  TotemSeasonSpec *ss;
+  TotemSeriesView *self;
+
+  g_return_if_fail (TOTEM_IS_SERIES_VIEW (user_data));
+
+  self = TOTEM_SERIES_VIEW (user_data);
+  if (self->priv->current_season <= 0)
+    return;
+
+  ss = NULL;
+  for (i = self->priv->current_season - 1; i > 0 && ss == NULL; i--) {
+    ss = totem_series_view_get_season_spec (self, i);
+  }
+
+  if (ss == NULL)
+    return;
+
+  self->priv->current_season = i;
+  totem_series_view_update (self, g_ptr_array_index (ss->videos, 0));
+}
+
+static void
+on_next_season_clicked (GtkButton *button,
+                        gpointer   user_data)
+{
+  gint i, len;
+  TotemSeasonSpec *ss;
+  TotemSeriesView *self;
+
+  g_return_if_fail (TOTEM_IS_SERIES_VIEW (user_data));
+
+  self = TOTEM_SERIES_VIEW (user_data);
+  if (self->priv->current_season == -1)
+    return;
+
+  len = self->priv->seasons->len;
+  ss = NULL;
+  for (i = self->priv->current_season + 1; i <= len && ss == NULL; i++) {
+    ss = totem_series_view_get_season_spec (self, i);
+  }
+
+  if (ss == NULL)
+    return;
+
+  self->priv->current_season = i;
+  totem_series_view_update (self, g_ptr_array_index (ss->videos, 0));
+}
+
 /* -------------------------------------------------------------------------- *
  * External
  * -------------------------------------------------------------------------- */
@@ -261,6 +315,7 @@ totem_series_view_add_video (TotemSeriesView *self,
     return FALSE;
   }
 
+  g_printerr("# season number is %d\n", grl_media_get_season (video));
   ss = totem_series_view_new_season_spec (self, grl_media_get_season (video));
   g_return_val_if_fail (ss != NULL, FALSE);
   totem_series_view_season_spec_add_video (ss, video);
@@ -271,7 +326,13 @@ totem_series_view_add_video (TotemSeriesView *self,
 
   g_hash_table_add (self->priv->episodes, g_object_ref (video));
 
-  totem_series_view_update (self, video);
+  /* At first, we only update the descriptions of UI on the first video
+   * received, independently of its season number. We might want to change this
+   * later on XXX */
+  if (self->priv->current_season == -1) {
+    self->priv->current_season = grl_media_get_season (video);
+    totem_series_view_update (self, video);
+  }
 
   return TRUE;
 }
@@ -298,6 +359,7 @@ totem_series_view_init (TotemSeriesView *self)
   gtk_widget_init_template (GTK_WIDGET (self));
   self->priv = totem_series_view_get_instance_private (self);
 
+  self->priv->current_season = -1;
   self->priv->episodes = g_hash_table_new_full (g_direct_hash, g_direct_equal,
                                                 g_object_unref, NULL);
   self->priv->seasons = g_ptr_array_new_with_free_func (totem_series_view_free_season_spec);
@@ -318,4 +380,7 @@ totem_series_view_class_init (TotemSeriesViewClass *class)
   gtk_widget_class_bind_template_child_private (widget_class, TotemSeriesView, writers_label);
   gtk_widget_class_bind_template_child_private (widget_class, TotemSeriesView, season_title);
   gtk_widget_class_bind_template_child_private (widget_class, TotemSeriesView, episodes_stack);
+
+  gtk_widget_class_bind_template_callback (widget_class, on_previous_season_clicked);
+  gtk_widget_class_bind_template_callback (widget_class, on_next_season_clicked);
 }
