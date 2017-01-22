@@ -107,11 +107,13 @@ totem_series_view_set_writers (TotemSeriesView *self,
   gtk_label_set_text (self->priv->writers_label, writers);
 }
 
+/*
+ * Update the Series View based in the metadata of given @video
+ */
 static void
-totem_series_view_update (TotemSeriesView *self)
+totem_series_view_update (TotemSeriesView *self,
+                          GrlMedia        *video)
 {
-  const GPtrArray *videos;
-  GrlMedia *video;
   const gchar *description;
   const gchar *cast;
   const gchar *director;
@@ -120,12 +122,6 @@ totem_series_view_update (TotemSeriesView *self)
   gint season_number;
   gint season_year;
 
-  videos = self->priv->videos;
-
-  g_return_if_fail (videos != NULL);
-  g_return_if_fail (videos->len > 0);
-
-  video = g_ptr_array_index (videos, 0);
   g_return_if_fail (video != NULL);
 
   description = grl_media_get_description (video);
@@ -216,7 +212,7 @@ totem_series_view_add_video (TotemSeriesView *self,
 
   g_ptr_array_add (self->priv->videos, g_object_ref (video));
 
-  totem_series_view_update (self);
+  totem_series_view_update (self, video);
 
   return TRUE;
 }
