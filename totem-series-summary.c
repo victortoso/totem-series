@@ -43,8 +43,6 @@ typedef struct _TotemSeriesSummaryPrivate
   GList *pending_ops;
 } TotemSeriesSummaryPrivate;
 
-typedef struct _VideoSummaryData VideoSummaryData;
-
 /* For every added GrlVideo, we will need to check and request metadata related
  * to this video. The OperationSpec will be alive while there is any pending
  * request to Grilo. */
@@ -55,31 +53,11 @@ typedef struct
 
   gchar    *poster_path;
 
-  VideoSummaryData *video_summary;
   GList            *pending_grl_ops;
 } OperationSpec;
 
-struct _VideoSummaryData
-{
-  gchar    *title;
-  gchar    *description;
-  gchar    *genre;
-  gchar    *performer;
-  gchar    *director;
-  gchar    *author;
-  gchar    *poster_path;
-  gchar    *publication_date;
-
-  GHashTable *subtitles;
-};
-
 #define POSTER_WIDTH  266
 #define POSTER_HEIGHT 333
-
-/* FIXME: Almost random. Probably we don't want to use wrap-width :) */
-#define WRAP_WIDTH_SUBTITLES(n) ((n > 25) ? 8 : 4)
-
-static gchar *get_data_from_media (GrlData *data, GrlKeyID key);
 
 G_DEFINE_TYPE_WITH_PRIVATE (TotemSeriesSummary, totem_series_summary, GTK_TYPE_BIN);
 
@@ -106,69 +84,9 @@ operation_spec_free (OperationSpec *os)
 }
 
 static void
-video_summary_set_subtitles (TotemSeriesSummary *self,
-                             VideoSummaryData   *video_summary,
-                             GrlData            *data)
-{
-  guint i, length;
-  TotemSeriesSummaryPrivate *priv;
-
-  if (video_summary == NULL || video_summary->subtitles != NULL)
-    return;
-
-  priv = self->priv;
-  length = grl_data_length (data, priv->subtitles_lang_key);
-
-  if (length == 0)
-    return;
-
-  video_summary->subtitles = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
-  for (i = 0; i < length; i++) {
-    GrlRelatedKeys *relkeys;
-    const gchar *sub_url, *sub_lang;
-
-    relkeys = grl_data_get_related_keys (data, priv->subtitles_lang_key, i);
-    sub_lang = grl_related_keys_get_string (relkeys, priv->subtitles_lang_key);
-    sub_url = grl_related_keys_get_string (relkeys, priv->subtitles_url_key);
-    if (sub_lang == NULL || sub_url == NULL)
-      continue;
-
-    g_hash_table_insert (video_summary->subtitles,
-                         g_strdup (sub_lang),
-                         g_strdup (sub_url));
-  }
-}
-
-static void
 add_video_to_summary_and_free (OperationSpec *os)
 {
   TotemSeriesSummary *self = os->totem_series_summary;
-  VideoSummaryData *data;
-  GDateTime *released;
-
-  data = g_slice_new0 (VideoSummaryData);
-  data->description = g_strdup (grl_media_get_description (os->video));
-  data->genre = get_data_from_media (GRL_DATA (os->video), GRL_METADATA_KEY_GENRE);
-  data->performer = get_data_from_media (GRL_DATA (os->video),
-                                         GRL_METADATA_KEY_PERFORMER);
-  data->director = get_data_from_media (GRL_DATA (os->video),
-                                        GRL_METADATA_KEY_DIRECTOR);
-  data->author = get_data_from_media (GRL_DATA (os->video),
-                                      GRL_METADATA_KEY_AUTHOR);
-  data->poster_path = g_strdup (os->poster_path);
-
-  released = grl_media_get_publication_date (os->video);
-  if (released)
-    data->publication_date = g_date_time_format (released, "%F");
-
-  data->title = g_strdup (grl_media_get_episode_title (os->video));
-  if (data->title == NULL)
-    data->title = g_strdup (grl_media_get_title (os->video));
-
-  video_summary_set_subtitles (self, os->video_summary, GRL_DATA (os->video));
-
-  /* Cache VideoSummaryData as we might have other async calls */
-  os->video_summary = data;
 
   /* FIXME: For now, we add the video in the end. It should be an update here */
   totem_series_view_add_video (self->priv->view, os->video);
@@ -359,34 +277,6 @@ resolve_by_video_title_parsing (OperationSpec *os)
 
   os->pending_grl_ops = g_list_prepend (os->pending_grl_ops,
                                         GUINT_TO_POINTER (op_id));
-}
-
-/* For GrlKeys that have several values, return all of them in one
- * string separated by comma; */
-static gchar *
-get_data_from_media (GrlData *data,
-                     GrlKeyID key)
-{
-  gint i, len;
-  GString *s;
-
-  len = grl_data_length (data, key);
-  if (len <= 0)
-    return NULL;
-
-  s = g_string_new ("");
-  for (i = 0; i < len; i++) {
-    GrlRelatedKeys *relkeys;
-    const gchar *element;
-
-    relkeys = grl_data_get_related_keys (data, key, i);
-    element = grl_related_keys_get_string (relkeys, key);
-
-    if (i > 0)
-      g_string_append (s, ", ");
-    g_string_append (s, element);
-  }
-  return g_string_free (s, FALSE);
 }
 
 /* -------------------------------------------------------------------------- *
