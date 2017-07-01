@@ -32,7 +32,7 @@ typedef struct _TotemSeriesViewPrivate
   GHashTable *episodes;
   GList *seasons;
   gchar *show_name;
-  gint current_season;
+  GList *current_season;
 
   GtkLabel *description_label;
   GtkLabel *cast_label;
@@ -251,53 +251,44 @@ static void
 on_previous_season_clicked (GtkButton *button,
                             gpointer   user_data)
 {
-  gint i;
-  TotemSeasonSpec *ss;
   TotemSeriesView *self;
+  GList *prev;
 
   g_return_if_fail (TOTEM_IS_SERIES_VIEW (user_data));
 
   self = TOTEM_SERIES_VIEW (user_data);
-  if (self->priv->current_season <= 0)
-    return;
+  g_return_if_fail (self->priv->current_season != NULL);
 
-  ss = NULL;
-  for (i = self->priv->current_season - 1; i > 0 && ss == NULL; i--) {
-    ss = totem_series_view_get_season_spec (self, i);
+  prev = g_list_previous (self->priv->current_season);
+  if (prev != NULL) {
+    TotemSeasonSpec *ss = prev->data;
+    GrlMedia *video = g_ptr_array_index (ss->videos, 0);
+
+    self->priv->current_season = prev;
+    totem_series_view_update (self, video);
   }
-
-  if (ss == NULL)
-    return;
-
-  self->priv->current_season = i;
-  totem_series_view_update (self, g_ptr_array_index (ss->videos, 0));
 }
 
 static void
 on_next_season_clicked (GtkButton *button,
                         gpointer   user_data)
 {
-  gint i, len;
-  TotemSeasonSpec *ss;
   TotemSeriesView *self;
+  GList *next;
 
   g_return_if_fail (TOTEM_IS_SERIES_VIEW (user_data));
 
   self = TOTEM_SERIES_VIEW (user_data);
-  if (self->priv->current_season == -1)
-    return;
+  g_return_if_fail(self->priv->current_season != NULL);
 
-  len = g_list_length (self->priv->seasons);
-  ss = NULL;
-  for (i = self->priv->current_season + 1; i <= len && ss == NULL; i++) {
-    ss = totem_series_view_get_season_spec (self, i);
+  next = g_list_next(self->priv->current_season);
+  if (next != NULL) {
+    TotemSeasonSpec *ss = next->data;
+    GrlMedia *video = g_ptr_array_index (ss->videos, 0);
+
+    self->priv->current_season = next;
+    totem_series_view_update (self, video);
   }
-
-  if (ss == NULL)
-    return;
-
-  self->priv->current_season = i;
-  totem_series_view_update (self, g_ptr_array_index (ss->videos, 0));
 }
 
 /* -------------------------------------------------------------------------- *
@@ -346,7 +337,6 @@ totem_series_view_add_video (TotemSeriesView *self,
   if (self->priv->show_name == NULL) {
     /* First video */
     self->priv->show_name = g_strdup (show);
-    self->priv->current_season = grl_media_get_season (video);
   } else if (g_strcmp0(self->priv->show_name, show) != 0) {
     g_warning ("Video belong to different show: '%s' instead of '%s'",
                show, self->priv->show_name);
@@ -360,6 +350,9 @@ totem_series_view_add_video (TotemSeriesView *self,
 
   series_view_add_episode (self, video);
   totem_series_view_update (self, video);
+
+  if (self->priv->current_season == NULL)
+    self->priv->current_season = self->priv->seasons;
 
   return TRUE;
 }
@@ -390,7 +383,6 @@ totem_series_view_init (TotemSeriesView *self)
   gtk_widget_init_template (GTK_WIDGET (self));
   self->priv = totem_series_view_get_instance_private (self);
 
-  self->priv->current_season = -1;
   self->priv->episodes = g_hash_table_new_full (g_direct_hash, g_direct_equal,
                                                 g_object_unref, NULL);
 }
