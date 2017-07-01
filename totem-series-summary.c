@@ -30,29 +30,30 @@
 typedef struct _TotemSeriesSummaryPrivate
 {
   GrlRegistry *registry;
-  GrlSource *tmdb_source;
   GrlSource *tvdb_source;
   GrlSource *video_title_parsing_source;
   GrlSource *opensubtitles_source;
   GrlKeyID tvdb_poster_key;
-  GrlKeyID tmdb_poster_key;
   GrlKeyID subtitles_lang_key;
   GrlKeyID subtitles_url_key;
 
   TotemSeriesView *view;
 
+  /* List for pending OperationSpecs */
   GList *pending_ops;
 } TotemSeriesSummaryPrivate;
 
 typedef struct _VideoSummaryData VideoSummaryData;
 
+/* For every added GrlVideo, we will need to check and request metadata related
+ * to this video. The OperationSpec will be alive while there is any pending
+ * request to Grilo. */
 typedef struct
 {
   TotemSeriesSummary *totem_series_summary;
   GrlMedia           *video;
 
   gchar    *poster_path;
-  gboolean  is_tv_show;
 
   VideoSummaryData *video_summary;
   GList            *pending_grl_ops;
@@ -68,7 +69,6 @@ struct _VideoSummaryData
   gchar    *author;
   gchar    *poster_path;
   gchar    *publication_date;
-  gboolean  is_tv_show;
 
   GHashTable *subtitles;
 };
@@ -147,7 +147,6 @@ add_video_to_summary_and_free (OperationSpec *os)
   GDateTime *released;
 
   data = g_slice_new0 (VideoSummaryData);
-  data->is_tv_show = (grl_media_get_show (os->video) != NULL);
   data->description = g_strdup (grl_media_get_description (os->video));
   data->genre = get_data_from_media (GRL_DATA (os->video), GRL_METADATA_KEY_GENRE);
   data->performer = get_data_from_media (GRL_DATA (os->video),
@@ -162,9 +161,8 @@ add_video_to_summary_and_free (OperationSpec *os)
   if (released)
     data->publication_date = g_date_time_format (released, "%F");
 
-  if (data->is_tv_show)
-    data->title = g_strdup (grl_media_get_episode_title (os->video));
-  else
+  data->title = g_strdup (grl_media_get_episode_title (os->video));
+  if (data->title == NULL)
     data->title = g_strdup (grl_media_get_title (os->video));
 
   video_summary_set_subtitles (self, os->video_summary, GRL_DATA (os->video));
@@ -223,22 +221,14 @@ resolve_metadata_done (GrlSource    *source,
 
   priv = os->totem_series_summary->priv;
 
-  if (os->is_tv_show)
-    title = grl_media_get_show (media);
-  else
-    title = grl_media_get_title (media);
-
+  title = grl_media_get_show (media);
   if (title == NULL) {
     g_warning ("Basic information is missing - no title");
     operation_spec_free (os);
     return;
   }
 
-  if (os->is_tv_show)
-    poster_url = grl_data_get_string (GRL_DATA (media), priv->tvdb_poster_key);
-  else
-    poster_url = grl_data_get_string (GRL_DATA (media), priv->tmdb_poster_key);
-
+  poster_url = grl_data_get_string (GRL_DATA (media), priv->tvdb_poster_key);
   if (poster_url != NULL) {
     os->poster_path = g_build_filename (g_get_tmp_dir (), title, NULL);
     if (!g_file_test (os->poster_path, G_FILE_TEST_EXISTS)) {
@@ -298,7 +288,6 @@ resolve_video_summary_media (OperationSpec *os)
   self = os->totem_series_summary;
 
   if (grl_media_get_show (os->video) != NULL) {
-    os->is_tv_show = TRUE;
     /* And set basic information */
     /* FIXME: We should add the video here (or earlier) so we can update the UI
      * (if necessary) with basic inforation of tv-show
@@ -418,16 +407,6 @@ totem_series_summary_new (void)
   priv->registry = registry;
 
   /* Those plugins should be loaded as requirement */
-  source = grl_registry_lookup_source (registry, "grl-tmdb");
-  if (source != NULL) {
-    priv->tmdb_source = source;
-    priv->tmdb_poster_key =
-        grl_registry_lookup_metadata_key (registry, "tmdb-poster");
-/*    priv->movie_enabled = TRUE;*/
-/*  } else {*/
-/*    priv->movie_enabled = FALSE;*/
-/*    g_warning ("Failed to load tmdb source");*/
-  }
 
   source = grl_registry_lookup_source (registry, "grl-thetvdb");
   if (source != NULL) {
@@ -437,12 +416,6 @@ totem_series_summary_new (void)
   } else {
     g_warning ("Failed to load tvdb source");
   }
-
-/*  if (!priv->movie_enabled && !priv->shows_enabled) {*/
-/*    g_warning ("Base sources failed to load");*/
-/*    g_object_unref (self);*/
-/*    return NULL;*/
-/*  }*/
 
   source = grl_registry_lookup_source (registry, "grl-video-title-parsing");
   g_return_val_if_fail (source != NULL, NULL);

@@ -211,12 +211,15 @@ totem_series_view_new_season_spec (TotemSeriesView *self,
     ss->videos = g_ptr_array_new ();
     ss->season_view = gtk_list_box_new ();
     gtk_widget_show (ss->season_view);
+    g_debug ("new season spec: %d", season_number);
 
     g_ptr_array_insert (self->priv->seasons, season_number, ss);
 
     name = g_strdup_printf ("%d", season_number);
     gtk_stack_add_named (self->priv->episodes_stack, ss->season_view, name);
     g_free (name);
+  } else {
+    g_debug ("got season spec: %d", season_number);
   }
 
   return ss;
@@ -312,10 +315,11 @@ totem_series_view_add_video (TotemSeriesView *self,
   }
 
   if (g_hash_table_contains (self->priv->episodes, video)) {
+    g_warning ("Video already included on its series-view");
     return FALSE;
   }
 
-  g_printerr("# season number is %d\n", grl_media_get_season (video));
+  g_debug("# '%s' S%02dxE%02d", show, grl_media_get_season (video), grl_media_get_episode (video));
   ss = totem_series_view_new_season_spec (self, grl_media_get_season (video));
   g_return_val_if_fail (ss != NULL, FALSE);
   totem_series_view_season_spec_add_video (ss, video);
