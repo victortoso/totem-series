@@ -80,7 +80,7 @@ operation_spec_free (OperationSpec *os)
 
   g_clear_object (&os->video);
   g_clear_pointer (&os->poster_path, g_free);
-  g_slice_free (OperationSpec, os);
+  g_free (os);
 }
 
 static void
@@ -350,7 +350,7 @@ totem_series_summary_add_video (TotemSeriesSummary *self,
   }
 #endif
 
-  os = g_slice_new0 (OperationSpec);
+  os = g_new0 (OperationSpec, 1);
   os->totem_series_summary = self;
   os->video = g_object_ref (video);
   self->priv->pending_ops = g_list_prepend (self->priv->pending_ops, os);
