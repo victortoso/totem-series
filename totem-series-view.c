@@ -34,6 +34,8 @@ typedef struct _TotemSeriesViewPrivate
   gchar *show_name;
   GList *current_season;
 
+  GtkButton *next_season;
+  GtkButton *previous_season;
   GtkLabel *description_label;
   GtkLabel *cast_label;
   GtkLabel *director_label;
@@ -130,6 +132,18 @@ totem_series_view_update (TotemSeriesView *self,
   gint season_number;
 
   g_return_if_fail (video != NULL);
+
+  if (!g_list_next (self->priv->current_season)) {
+      gtk_widget_hide (GTK_WIDGET (self->priv->next_season));
+  } else {
+      gtk_widget_show (GTK_WIDGET (self->priv->next_season));
+  }
+
+  if (!g_list_previous (self->priv->current_season)) {
+      gtk_widget_hide (GTK_WIDGET (self->priv->previous_season));
+  } else {
+      gtk_widget_show (GTK_WIDGET (self->priv->previous_season));
+  }
 
   description = grl_media_get_description (video);
   if (description == NULL)
@@ -402,6 +416,8 @@ totem_series_view_class_init (TotemSeriesViewClass *class)
   gtk_widget_class_bind_template_child_private (widget_class, TotemSeriesView, writers_label);
   gtk_widget_class_bind_template_child_private (widget_class, TotemSeriesView, season_title);
   gtk_widget_class_bind_template_child_private (widget_class, TotemSeriesView, episodes_stack);
+  gtk_widget_class_bind_template_child_private (widget_class, TotemSeriesView, next_season);
+  gtk_widget_class_bind_template_child_private (widget_class, TotemSeriesView, previous_season);
 
   gtk_widget_class_bind_template_callback (widget_class, on_previous_season_clicked);
   gtk_widget_class_bind_template_callback (widget_class, on_next_season_clicked);
