@@ -128,7 +128,6 @@ totem_series_view_update (TotemSeriesView *self,
   const gchar *writers;
   gchar *season_title_string;
   gint season_number;
-  gint season_year;
 
   g_return_if_fail (video != NULL);
 
@@ -152,9 +151,19 @@ totem_series_view_update (TotemSeriesView *self,
     writers = "";
   totem_series_view_set_writers (self, writers);
 
-  season_number = 0; // TODO
-  season_year = 0; // TODO
-  season_title_string = g_strdup_printf ("Season %d (%d)", season_number, season_year);
+  /* FIXME: this is asserting in glib after I press next. GDateTime seems fine,
+   * wtf:
+   * GLib:ERROR:gdatetime.c:1539:g_date_time_get_ymd: assertion failed: (0 <= remaining_days)
+  GDateTime *date;
+  gchar *date_str;
+  date = grl_media_get_publication_date(video);
+  date_str = (date != NULL) ? g_date_time_format (date, " (%Y)") : g_strdup("");
+  g_clear_pointer (&date, g_date_time_unref);
+  g_clear_pointer (&date_str, g_free);
+  */
+
+  season_number = grl_media_get_season(video);
+  season_title_string = g_strdup_printf ("Season %d", season_number);
   gtk_label_set_text (self->priv->season_title, season_title_string);
   g_free (season_title_string);
 }
