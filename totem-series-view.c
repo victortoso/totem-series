@@ -302,10 +302,10 @@ totem_series_view_add_video (TotemSeriesView *self,
   show = grl_media_get_show (video);
   g_return_val_if_fail (show != NULL, FALSE);
 
-  if (self->priv->show_name == NULL)
+  if (self->priv->show_name == NULL) {
+    /* First video */
     self->priv->show_name = g_strdup (show);
-
-  if (g_strcmp0(self->priv->show_name, show) != 0) {
+  } else if (g_strcmp0(self->priv->show_name, show) != 0) {
     g_warning ("Video belong to different show: '%s' instead of '%s'",
                show, self->priv->show_name);
     return FALSE;

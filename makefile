@@ -1,7 +1,7 @@
 CC=gcc
 LIBS=`pkg-config --libs grilo-0.3 gtk+-3.0 grilo-net-0.3 emeus-1.0`
 CFLAGS= `pkg-config --cflags grilo-0.3 gtk+-3.0 grilo-net-0.3 emeus-1.0`
-CFLAGS+= -Wall -g -DON_DEVELOPMENT
+CFLAGS+= -Wall -g -DON_DEVELOPMENT -DG_LOG_DOMAIN=\"totem\"
 TARGET=bin
 CCRESOURCES=glib-compile-resources
 
