@@ -30,7 +30,7 @@
 typedef struct _TotemSeriesViewPrivate
 {
   GHashTable *episodes;
-  GPtrArray *seasons;
+  GList *seasons;
   gchar *show_name;
   gint current_season;
 
@@ -193,14 +193,27 @@ static TotemSeasonSpec *
 totem_series_view_get_season_spec (TotemSeriesView *self,
                                    gint             season_number)
 {
+  GList *it;
+
   g_return_val_if_fail (season_number >= 0, NULL);
 
-  if (self->priv->seasons->len < season_number) {
-    g_ptr_array_set_size (self->priv->seasons, season_number);
-    return NULL;
+  for (it = self->priv->seasons; it != NULL; it = it->next) {
+    TotemSeasonSpec *ss = it->data;
+
+    if (ss->season_number == season_number)
+      return ss;
   }
 
-  return g_ptr_array_index (self->priv->seasons, season_number);
+  return NULL;
+}
+
+static gint
+ascending_order (gconstpointer a, gconstpointer b)
+{
+  const TotemSeasonSpec *ss_a = a;
+  const TotemSeasonSpec *ss_b = b;
+
+  return (ss_a->season_number - ss_b->season_number);
 }
 
 static TotemSeasonSpec *
@@ -222,7 +235,7 @@ totem_series_view_new_season_spec (TotemSeriesView *self,
     gtk_widget_show (ss->season_view);
     g_debug ("new season spec: %d", season_number);
 
-    g_ptr_array_insert (self->priv->seasons, season_number, ss);
+    self->priv->seasons = g_list_insert_sorted (self->priv->seasons, ss, ascending_order);
 
     name = g_strdup_printf ("Season: %02d", season_number);
     gtk_stack_add_named (self->priv->episodes_stack, ss->season_view, name);
@@ -274,7 +287,7 @@ on_next_season_clicked (GtkButton *button,
   if (self->priv->current_season == -1)
     return;
 
-  len = self->priv->seasons->len;
+  len = g_list_length (self->priv->seasons);
   ss = NULL;
   for (i = self->priv->current_season + 1; i <= len && ss == NULL; i++) {
     ss = totem_series_view_get_season_spec (self, i);
@@ -360,7 +373,11 @@ totem_series_view_finalize (GObject *object)
 {
   TotemSeriesViewPrivate *priv = TOTEM_SERIES_VIEW (object)->priv;
 
-  g_clear_pointer (&priv->seasons, g_ptr_array_unref);
+  if (priv->seasons) {
+    g_list_free_full (priv->seasons, totem_series_view_free_season_spec);
+    priv->seasons = NULL;
+  }
+
   g_clear_pointer (&priv->episodes, g_hash_table_unref);
   g_free (priv->show_name);
 
@@ -376,7 +393,6 @@ totem_series_view_init (TotemSeriesView *self)
   self->priv->current_season = -1;
   self->priv->episodes = g_hash_table_new_full (g_direct_hash, g_direct_equal,
                                                 g_object_unref, NULL);
-  self->priv->seasons = g_ptr_array_new_with_free_func (totem_series_view_free_season_spec);
 }
 
 static void
