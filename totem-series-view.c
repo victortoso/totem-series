@@ -215,7 +215,7 @@ totem_series_view_new_season_spec (TotemSeriesView *self,
 
     g_ptr_array_insert (self->priv->seasons, season_number, ss);
 
-    name = g_strdup_printf ("%d", season_number);
+    name = g_strdup_printf ("Season: %02d", season_number);
     gtk_stack_add_named (self->priv->episodes_stack, ss->season_view, name);
     g_free (name);
   } else {
@@ -292,12 +292,28 @@ totem_series_view_new (void)
   return self;
 }
 
+static void
+series_view_add_episode (TotemSeriesView *self,
+                         GrlMedia        *video)
+{
+  TotemSeasonSpec *ss;
+  TotemEpisodeView *episode_view;
+
+  ss = totem_series_view_new_season_spec (self, grl_media_get_season (video));
+  g_assert_nonnull(ss);
+  totem_series_view_season_spec_add_video (ss, video);
+
+  episode_view = totem_episode_view_new (video);
+  gtk_widget_show (GTK_WIDGET (episode_view));
+  gtk_container_add (GTK_CONTAINER (ss->season_view), GTK_WIDGET (episode_view));
+
+  g_hash_table_add (self->priv->episodes, g_object_ref (video));
+}
+
 gboolean
 totem_series_view_add_video (TotemSeriesView *self,
                              GrlMedia        *video)
 {
-  TotemSeasonSpec *ss;
-  TotemEpisodeView *episode_view;
   const gchar *show;
 
   g_return_val_if_fail (video != NULL, FALSE);
@@ -308,35 +324,20 @@ totem_series_view_add_video (TotemSeriesView *self,
   if (self->priv->show_name == NULL) {
     /* First video */
     self->priv->show_name = g_strdup (show);
+    self->priv->current_season = grl_media_get_season (video);
   } else if (g_strcmp0(self->priv->show_name, show) != 0) {
     g_warning ("Video belong to different show: '%s' instead of '%s'",
                show, self->priv->show_name);
     return FALSE;
-  }
-
-  if (g_hash_table_contains (self->priv->episodes, video)) {
+  } else if (g_hash_table_contains (self->priv->episodes, video)) {
     g_warning ("Video already included on its series-view");
     return FALSE;
   }
 
   g_debug("# '%s' S%02dxE%02d", show, grl_media_get_season (video), grl_media_get_episode (video));
-  ss = totem_series_view_new_season_spec (self, grl_media_get_season (video));
-  g_return_val_if_fail (ss != NULL, FALSE);
-  totem_series_view_season_spec_add_video (ss, video);
 
-  episode_view = totem_episode_view_new (video);
-  gtk_widget_show (GTK_WIDGET (episode_view));
-  gtk_container_add (GTK_CONTAINER (ss->season_view), GTK_WIDGET (episode_view));
-
-  g_hash_table_add (self->priv->episodes, g_object_ref (video));
-
-  /* At first, we only update the descriptions of UI on the first video
-   * received, independently of its season number. We might want to change this
-   * later on XXX */
-  if (self->priv->current_season == -1) {
-    self->priv->current_season = grl_media_get_season (video);
-    totem_series_view_update (self, video);
-  }
+  series_view_add_episode (self, video);
+  totem_series_view_update (self, video);
 
   return TRUE;
 }
